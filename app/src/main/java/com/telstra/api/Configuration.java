@@ -6,7 +6,7 @@
 package com.telstra.api;
  
 import android.content.Context;
-
+import java.util.Date;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
@@ -36,6 +36,12 @@ public class Configuration {
 
     //The OAuth 2.0 access token to be set before API calls
     //TODO: Replace the oAuthAccessToken with an appropriate value
-    public static String oAuthAccessToken = "TODO: Replace";
+    public static String oAuthAccessToken = "no need to configure";
+
+    public static String consumerKey = "ZDuzM5gKWl9IM8G4e0VMH2bKorRIU33t";
+    public static String consumerSecret = "AUbyh8CJy8gASog1";
+    public static Date tokenExpiry = new Date(0);
+
+    public static String selfMobileNumber = "0413725868";
 
 }

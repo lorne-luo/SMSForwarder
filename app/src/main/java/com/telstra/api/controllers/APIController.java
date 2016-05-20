@@ -26,6 +26,9 @@ import com.telstra.api.models.SendMessageResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class APIController extends BaseController {
     /**
@@ -44,7 +47,53 @@ public class APIController extends BaseController {
     }
 
     /**
-     * Send an SMS to an AUS mobile, returns A unique identifier for the SMS response  (messageId) 
+     * get access token using customerKey and customerSecret
+     * @return Returns the AuthenticationResponse response from the API call
+     */
+    public String getAccessToken() throws JsonProcessingException {
+        Date now = new Date();
+        if (now.before(Configuration.tokenExpiry)) {
+            return Configuration.oAuthAccessToken;
+        }
+
+        GetAuthenticationInput authRequest = new GetAuthenticationInput();
+        authRequest.setClientId(Configuration.consumerKey);
+        authRequest.setClientSecret(Configuration.consumerSecret);
+
+        this.getAuthenticationAsync(authRequest, new APICallBack<AuthenticationResponse>() {
+            public void onSuccess(HttpContext context, AuthenticationResponse response) {
+                Configuration.oAuthAccessToken = response.getAccessToken();
+
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.SECOND, Integer.parseInt(response.getExpiresIn()));
+                Configuration.tokenExpiry = cal.getTime();
+            }
+
+            public void onFailure(HttpContext context, Throwable error) {
+                Configuration.oAuthAccessToken = "";
+                Configuration.tokenExpiry = new Date(0);
+            }
+        });
+
+        return Configuration.oAuthAccessToken;
+    }
+
+    /*
+     * send SMS to myself
+     */
+    public void sendSelfSMSAsync(
+            final String body,
+            final APICallBack<SendMessageResponse> callBack
+    ) throws JsonProcessingException {
+        SendMessageRequest messageRequest = new SendMessageRequest();
+        messageRequest.setTo(Configuration.selfMobileNumber);
+        messageRequest.setBody(body);
+
+        this.createSMSMessageAsync(messageRequest, callBack);
+    }
+
+    /**
+     * Send an SMS to an AUS mobile, returns A unique identifier for the SMS response  (messageId)
      * @param    messageRequest    Required parameter: TODO: type description here
 	 * @return	Returns the SendMessageResponse response from the API call*/
     public void createSMSMessageAsync(
@@ -67,7 +116,7 @@ public class APIController extends BaseController {
                     put( "user-agent", "APIMATIC 2.0" );
                     put( "accept", "application/json" );
                     put( "content-type", "application/json; charset=utf-8" );
-                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken) );
+                    put( "Authorization", String.format("Bearer %1$s", APIController.this.getAccessToken()) );
             }
         };
 
@@ -225,7 +274,7 @@ public class APIController extends BaseController {
             {
                     put( "user-agent", "APIMATIC 2.0" );
                     put( "accept", "application/json" );
-                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken) );
+                    put( "Authorization", String.format("Bearer %1$s", APIController.this.getAccessToken()) );
             }
         };
 
@@ -302,7 +351,7 @@ public class APIController extends BaseController {
             private static final long serialVersionUID = 5655003305670962017L;
             {
                     put( "user-agent", "APIMATIC 2.0" );
-                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken) );
+                    put( "Authorization", String.format("Bearer %1$s", APIController.this.getAccessToken()) );
             }
         };
 
