@@ -50,7 +50,7 @@ public class APIController extends BaseController {
      * get access token using customerKey and customerSecret
      * @return Returns the AuthenticationResponse response from the API call
      */
-    public String getAccessToken() throws JsonProcessingException {
+    public String getAccessToken() {
         Date now = new Date();
         if (now.before(Configuration.tokenExpiry)) {
             return Configuration.oAuthAccessToken;
@@ -251,7 +251,7 @@ public class APIController extends BaseController {
     public void getMessageStatusAsync(
             final String messageID,
             final APICallBack<MessageStatus> callBack
-    ) {
+    ) throws JsonProcessingException {
         //the base uri for api requests
         String baseUri = Configuration.baseUri;
 
@@ -329,7 +329,7 @@ public class APIController extends BaseController {
     public void getMessageResponseAsync(
             final String messageID,
             final APICallBack<ResponseStatusEnum> callBack
-    ) {
+    ) throws JsonProcessingException {
         //the base uri for api requests
         String baseUri = Configuration.baseUri;
 
