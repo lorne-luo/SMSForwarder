@@ -5,6 +5,8 @@
  */
 package com.telstra.api.controllers;
 
+import android.util.Log;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.telstra.api.APIException;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Calendar;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class APIController extends BaseController {
@@ -115,8 +118,8 @@ public class APIController extends BaseController {
             {
                     put( "user-agent", "APIMATIC 2.0" );
                     put( "accept", "application/json" );
-                    put( "content-type", "application/json; charset=utf-8" );
-                    put( "Authorization", String.format("Bearer %1$s", APIController.this.getAccessToken()) );
+//                    put( "content-type", "application/json; charset=utf-8" );
+                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken) );
             }
         };
 
@@ -274,7 +277,7 @@ public class APIController extends BaseController {
             {
                     put( "user-agent", "APIMATIC 2.0" );
                     put( "accept", "application/json" );
-                    put( "Authorization", String.format("Bearer %1$s", APIController.this.getAccessToken()) );
+                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken) );
             }
         };
 
@@ -351,7 +354,7 @@ public class APIController extends BaseController {
             private static final long serialVersionUID = 5655003305670962017L;
             {
                     put( "user-agent", "APIMATIC 2.0" );
-                    put( "Authorization", String.format("Bearer %1$s", APIController.this.getAccessToken()) );
+                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken) );
             }
         };
 

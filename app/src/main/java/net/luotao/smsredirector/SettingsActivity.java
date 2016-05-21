@@ -122,14 +122,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupActionBar();
-
-//        Context context = getApplicationContext();
-//                CharSequence text = "Hello toast!";
-//        int duration = Toast.LENGTH_SHORT;
-//
-//        Toast toast = Toast.makeText(context, text, duration);
-//        toast.show();
-//        Log.i("1111111", "12312saaasdfasfsd");
     }
 
     /**

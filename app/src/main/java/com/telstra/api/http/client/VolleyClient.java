@@ -5,7 +5,10 @@
  */
 package com.telstra.api.http.client;
 
+import android.util.Log;
+
 import com.android.volley.AuthFailureError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.telstra.api.Configuration;
 import com.telstra.api.http.request.HttpBodyRequest;
 import com.telstra.api.http.request.HttpMethod;
@@ -55,6 +58,12 @@ public class VolleyClient implements HttpClient {
                 new com.android.volley.Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(com.android.volley.VolleyError error) {
+                        try {
+                            String charset = HttpHeaderParser.parseCharset(error.networkResponse.headers, "utf-8");
+                            String detail = new String(error.networkResponse.data, charset);
+                            Log.i("Volley Error", detail);
+                        } catch (UnsupportedEncodingException e) {
+                        }
                         // Handle error
                         callBack.onFailure(new HttpContext(request, null), error);
                     }
@@ -78,6 +87,12 @@ public class VolleyClient implements HttpClient {
                 new com.android.volley.Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(com.android.volley.VolleyError error) {
+                        try {
+                            String charset = HttpHeaderParser.parseCharset(error.networkResponse.headers, "utf-8");
+                            String detail = new String(error.networkResponse.data, charset);
+                            Log.i("Volley Error", detail);
+                        } catch (UnsupportedEncodingException e) {
+                        }
                         // Handle error
                         callBack.onFailure(new HttpContext(request, null), error);
                     }
