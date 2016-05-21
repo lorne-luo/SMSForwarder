@@ -21,7 +21,8 @@ public class Configuration {
     //Initialization of configuration
     public static void initialize(Context context){
         if(initialized)
-            throw new IllegalStateException("Already initialized");
+            return;
+//            throw new IllegalStateException("Already initialized");
         requestQueue = Volley.newRequestQueue(context);
     
         initialized = true;
@@ -36,7 +37,7 @@ public class Configuration {
 
     //The OAuth 2.0 access token to be set before API calls
     //TODO: Replace the oAuthAccessToken with an appropriate value
-    public static String oAuthAccessToken = "no need to configure";
+    public static String oAuthAccessToken = "iOjGMG4JycwsUkVAEdHp0l3LwGz4";
 
     public static String consumerKey = "ZDuzM5gKWl9IM8G4e0VMH2bKorRIU33t";
     public static String consumerSecret = "AUbyh8CJy8gASog1";
