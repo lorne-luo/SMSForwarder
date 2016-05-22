@@ -61,16 +61,7 @@ public class SMSReceiver extends BroadcastReceiver {
     private void send_sms(Context context,String body){
         Configuration.initialize(context);
         APIController controller = new APIController();
-        String token = controller.getAccessToken();
-
-        Date now = new Date();
-        if (now.after(Configuration.tokenExpiry)) {
-            try {
-                Thread.currentThread().sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        String token = controller.getAccessTokenSync();
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         token += "\n" + dateFormat.format(Configuration.tokenExpiry);

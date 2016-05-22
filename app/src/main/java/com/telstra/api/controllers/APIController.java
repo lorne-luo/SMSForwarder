@@ -7,6 +7,7 @@ package com.telstra.api.controllers;
 
 import android.util.Log;
 
+import com.android.volley.VolleyError;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.telstra.api.APIException;
@@ -25,13 +26,20 @@ import com.telstra.api.models.ResponseStatusEnum;
 import com.telstra.api.models.SendMessageRequest;
 import com.telstra.api.models.SendMessageResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
-import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.json.JSONObject;
+import java.io.InputStream;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 
 public class APIController extends BaseController {
     /**
@@ -75,9 +83,86 @@ public class APIController extends BaseController {
             public void onFailure(HttpContext context, Throwable error) {
                 Configuration.oAuthAccessToken = "";
                 Configuration.tokenExpiry = new Date(0);
+                Log.i("getAccessToken", "Get token failed, reset Configuration.oAuthAccessToken");
             }
         });
 
+        return Configuration.oAuthAccessToken;
+    }
+
+    public String getAccessTokenSync(){
+        Date now = new Date();
+        if (now.before(Configuration.tokenExpiry)) {
+            Log.i("getAccessToken", "Cached token = "+Configuration.oAuthAccessToken);
+            return Configuration.oAuthAccessToken;
+        }
+
+        String baseUri = Configuration.baseUri;
+        StringBuilder queryBuilder = new StringBuilder(baseUri);
+        queryBuilder.append("/oauth/token");
+
+        APIHelper.appendUrlWithQueryParameters(queryBuilder, new HashMap<String, Object>() {
+            private static final long serialVersionUID = 5503757831781780302L;
+            {
+                put( "client_id", Configuration.consumerKey);
+                put( "client_secret", Configuration.consumerSecret);
+                put( "grant_type", "client_credentials" );
+                put( "scope", "SMS" );
+            }});
+        final String url = APIHelper.cleanUrl(queryBuilder);
+
+        Thread thread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    InputStream inputStream = null;
+                    String result = "";
+                    try {
+                        // create HttpClient
+                        org.apache.http.client.HttpClient httpclient = new DefaultHttpClient();
+
+                        // make GET request to the given URL
+                        org.apache.http.HttpResponse httpResponse = httpclient.execute(new HttpGet(url));
+
+                        // receive response as inputStream
+                        inputStream = httpResponse.getEntity().getContent();
+
+                        // convert inputstream to string
+                        if (inputStream != null) {
+                            result = convertInputStreamToString(inputStream);
+                            JSONObject response = new JSONObject(result);
+                            Configuration.oAuthAccessToken = response.getString("access_token");
+
+                            String expiry_sec = response.getString("expires_in");
+                            Calendar cal = Calendar.getInstance();
+                            cal.add(Calendar.SECOND, Integer.parseInt(expiry_sec));
+                            Configuration.tokenExpiry = cal.getTime();
+                        }
+                        else
+                            result = "Did not work!";
+
+                    } catch (Exception e) {
+                        Log.d("InputStream", e.getLocalizedMessage());
+                    }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Log.i("getAccessToken", "Get token = "+Configuration.oAuthAccessToken);
         return Configuration.oAuthAccessToken;
     }
 
@@ -119,7 +204,7 @@ public class APIController extends BaseController {
                     put( "user-agent", "APIMATIC 2.0" );
                     put( "accept", "application/json" );
 //                    put( "content-type", "application/json; charset=utf-8" );
-                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken) );
+                    put( "Authorization", String.format("Bearer %1$s", Configuration.oAuthAccessToken));
             }
         };
 
@@ -203,6 +288,8 @@ public class APIController extends BaseController {
             }
         };
 
+        Log.i("getAccessToken", "getAuthenticationAsync queryUrl = " + queryUrl);
+        //https://api.telstra.com/v1/oauth/token?grant_type=client_credentials&scope=SMS&client_secret=AUbyh8CJy8gASog1&client_id=ZDuzM5gKWl9IM8G4e0VMH2bKorRIU33t
         //prepare and invoke the API call request to fetch the response
         final HttpRequest request = clientInstance.get(queryUrl, headers, null);
 
@@ -396,6 +483,19 @@ public class APIController extends BaseController {
 
         //execute async using thread pool
         APIHelper.getScheduler().execute(responseTask);
+    }
+
+    // convert inputstream to String
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException{
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+
+        inputStream.close();
+        return result;
+
     }
         
 }
