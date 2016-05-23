@@ -6,21 +6,17 @@ import android.content.Intent;
 import android.telephony.gsm.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
-import android.telephony.gsm.SmsManager;
 import android.os.Bundle;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.telstra.api.http.client.APICallBack;
-import com.telstra.api.http.client.HttpClient;
 import com.telstra.api.http.client.HttpContext;
 import java.util.Calendar;
 
 import com.telstra.api.models.AuthenticationResponse;
 import com.telstra.api.models.GetAuthenticationInput;
-import com.telstra.api.models.MessageStatus;
-import com.telstra.api.models.ResponseStatusEnum;
 import com.telstra.api.models.SendMessageRequest;
 import com.telstra.api.models.SendMessageResponse;
 import com.telstra.api.Configuration;
@@ -48,7 +44,7 @@ public class SMSReceiver extends BroadcastReceiver {
                     sb.append(curMsg.getDisplayOriginatingAddress());
                     sb.append("]：");
                     sb.append(curMsg.getDisplayMessageBody());
-                    this.send_sms(context,sb.toString());
+                    this.sendSelfSMS(context,sb.toString());
                 }
 //                Toast.makeText(context,
 //                        String.valueOf(msg.length)+" Got The Message:" + sb.toString(),
@@ -58,7 +54,67 @@ public class SMSReceiver extends BroadcastReceiver {
 
     }
 
-    private void send_sms(Context context,String body){
+    private void checkTokenAndSendSMS(final Context context, final String body){
+        Configuration.initialize(context);
+        Date now = new Date();
+        if (now.before(Configuration.tokenExpiry)) {
+            GetAuthenticationInput authRequest = new GetAuthenticationInput();
+            authRequest.setClientId(Configuration.consumerKey);
+            authRequest.setClientSecret(Configuration.consumerSecret);
+
+            APIController controller = new APIController();
+            controller.getAuthenticationAsync(authRequest, new APICallBack<AuthenticationResponse>() {
+                public void onSuccess(HttpContext httpcontext, AuthenticationResponse response) {
+                    Configuration.oAuthAccessToken = response.getAccessToken();
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.add(Calendar.SECOND, Integer.parseInt(response.getExpiresIn()));
+                    Configuration.tokenExpiry = cal.getTime();
+                    SMSReceiver.this.sendSMS(context,Configuration.selfMobileNumber,body);
+                }
+
+                public void onFailure(HttpContext httpcontext, Throwable error) {
+                    Configuration.oAuthAccessToken = "";
+                    Configuration.tokenExpiry = new Date(0);
+                    Log.i("getAccessToken", "Get token failed, reset Configuration.oAuthAccessToken");
+                }
+            });
+        }else{
+            this.sendSMS(context,Configuration.selfMobileNumber,body);
+        }
+    }
+
+    private void sendSMS(Context context,String to, String body){
+        APIController controller = new APIController();
+        SendMessageRequest messageRequest = new SendMessageRequest();
+        messageRequest.setTo(to);
+        messageRequest.setBody(body);
+
+        try {
+            controller.createSMSMessageAsync(messageRequest,
+                    new APICallBack<SendMessageResponse>() {
+                        public void onSuccess(HttpContext context, SendMessageResponse response) {
+                            Log.i("sendSMS", response.getMessageId());
+                        }
+
+                        public void onFailure(HttpContext context, Throwable error) {
+                            Log.i("sendSMS", "SMSReceiver.sendSMS.onFailue");
+                        }
+                    });
+        } catch (JsonProcessingException error) {
+            Toast.makeText(context,
+                    "sendSMS JsonProcessingException = " + error.getMessage(),
+                    Toast.LENGTH_LONG).show();
+        }
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Toast.makeText(context,
+                "SMS forwarded\nToken Expiry = " + dateFormat.format(Configuration.tokenExpiry),
+                Toast.LENGTH_LONG).show();
+    }
+
+
+    private void sendSelfSMS(Context context, String body){
         Configuration.initialize(context);
         APIController controller = new APIController();
         String token = controller.getAccessTokenSync();
@@ -72,21 +128,21 @@ public class SMSReceiver extends BroadcastReceiver {
             controller.sendSelfSMSAsync(body,
                     new APICallBack<SendMessageResponse>() {
                         public void onSuccess(HttpContext context, SendMessageResponse response) {
-                            Log.i("sendSelfSMSAsync", response.getMessageId());
+                            Log.i("sendSelfSMS", response.getMessageId());
                         }
 
                         public void onFailure(HttpContext context, Throwable error) {
-                            Log.i("sendSelfSMSAsync", "12312saaasdfasfsd");
+                            Log.i("sendSelfSMS", "12312saaasdfasfsd");
                         }
                     });
         } catch (JsonProcessingException error) {
             Toast.makeText(context,
-                    "JsonProcessingException = " + error.getMessage(),
+                    "sendSelfSMS JsonProcessingException = " + error.getMessage(),
                     Toast.LENGTH_LONG).show();
         }
 
         Toast.makeText(context,
-                "Token = " + token,
+                "SMS forwarded\nToken = " + token,
                 Toast.LENGTH_LONG).show();
     }
 
