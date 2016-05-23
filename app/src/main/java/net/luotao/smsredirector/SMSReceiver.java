@@ -3,6 +3,7 @@ package net.luotao.smsredirector;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.preference.PreferenceManager;
 import android.telephony.gsm.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
@@ -27,8 +28,17 @@ public class SMSReceiver extends BroadcastReceiver {
     //android.provider.Telephony.Sms.Intents
     private static final String SMS_RECEIVED_ACTION = "android.provider.Telephony.SMS_RECEIVED";
 
+    private static final String ENABLE_KEY = "example_switch";
+    private static final String MOBILE_NUMBER_KEY = "example_text";
+
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (!this.getIsEnabled(context)) {
+            Log.i("onReceive()", "Enable = false, skipped.");
+            return;
+        }
+
         if (SMS_RECEIVED_ACTION.equals(intent.getAction())) {
             StringBuilder sb = new StringBuilder();
             Bundle bundle = intent.getExtras();
@@ -54,6 +64,20 @@ public class SMSReceiver extends BroadcastReceiver {
 
     }
 
+    private String getMobileNumber(Context context){
+        String mobileNumber = PreferenceManager
+                .getDefaultSharedPreferences(context)
+                .getString(MOBILE_NUMBER_KEY, "");
+        return  mobileNumber;
+    }
+
+    private Boolean getIsEnabled(Context context){
+        Boolean isEnabled = PreferenceManager
+                .getDefaultSharedPreferences(context)
+                .getBoolean(ENABLE_KEY, false);
+        return isEnabled;
+    }
+
     private void checkTokenAndSendSMS(final Context context, final String body){
         Configuration.initialize(context);
         Date now = new Date();
@@ -72,7 +96,7 @@ public class SMSReceiver extends BroadcastReceiver {
                     Calendar cal = Calendar.getInstance();
                     cal.add(Calendar.SECOND, Integer.parseInt(response.getExpiresIn()));
                     Configuration.tokenExpiry = cal.getTime();
-                    SMSReceiver.this.sendSMS(context,Configuration.selfMobileNumber,body);
+                    SMSReceiver.this.sendSMS(context,SMSReceiver.this.getMobileNumber(context),body);
                 }
 
                 public void onFailure(HttpContext httpcontext, Throwable error) {
