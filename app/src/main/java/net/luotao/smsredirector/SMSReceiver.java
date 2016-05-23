@@ -44,7 +44,7 @@ public class SMSReceiver extends BroadcastReceiver {
                     sb.append(curMsg.getDisplayOriginatingAddress());
                     sb.append("]：");
                     sb.append(curMsg.getDisplayMessageBody());
-                    this.sendSelfSMS(context,sb.toString());
+                    this.checkTokenAndSendSMS(context,sb.toString());
                 }
 //                Toast.makeText(context,
 //                        String.valueOf(msg.length)+" Got The Message:" + sb.toString(),
@@ -58,6 +58,8 @@ public class SMSReceiver extends BroadcastReceiver {
         Configuration.initialize(context);
         Date now = new Date();
         if (now.before(Configuration.tokenExpiry)) {
+            this.sendSMS(context,Configuration.selfMobileNumber,body);
+        }else{
             GetAuthenticationInput authRequest = new GetAuthenticationInput();
             authRequest.setClientId(Configuration.consumerKey);
             authRequest.setClientSecret(Configuration.consumerSecret);
@@ -79,8 +81,6 @@ public class SMSReceiver extends BroadcastReceiver {
                     Log.i("getAccessToken", "Get token failed, reset Configuration.oAuthAccessToken");
                 }
             });
-        }else{
-            this.sendSMS(context,Configuration.selfMobileNumber,body);
         }
     }
 
