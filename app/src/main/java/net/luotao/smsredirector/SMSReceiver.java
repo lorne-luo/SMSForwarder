@@ -3,8 +3,9 @@ package net.luotao.smsredirector;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.preference.PreferenceManager;
-import android.telephony.gsm.SmsMessage;
+import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.telstra.api.http.client.APICallBack;
 import com.telstra.api.http.client.HttpContext;
 import java.util.Calendar;
+import java.util.Hashtable;
 
 import com.telstra.api.models.AuthenticationResponse;
 import com.telstra.api.models.GetAuthenticationInput;
@@ -40,26 +42,40 @@ public class SMSReceiver extends BroadcastReceiver {
         }
 
         if (SMS_RECEIVED_ACTION.equals(intent.getAction())) {
+            Hashtable<String, String> msg_table = new Hashtable<String, String>();
+
             StringBuilder sb = new StringBuilder();
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 Object[] pdus = (Object[]) bundle.get("pdus");
                 SmsMessage[] msg = new SmsMessage[pdus.length];
-                for (int i = 0; i < pdus.length; i++) {
-                    msg[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                }
 
-                for (SmsMessage curMsg : msg) {
-                    sb.append("[");
-                    sb.append(curMsg.getDisplayOriginatingAddress());
-                    sb.append("]：");
-                    sb.append(curMsg.getDisplayMessageBody());
-                    this.checkTokenAndSendSMS(context,sb.toString());
+                for (int i = 0; i < pdus.length; i++) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        String format = bundle.getString("format");
+                        msg[i] = SmsMessage.createFromPdu((byte[]) pdus[i], format);
+                    } else {
+                        msg[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+                    }
+                    String sender = msg[i].getDisplayOriginatingAddress();
+                    String body = msg[i].getDisplayMessageBody();//msg[i].getMessageBody();
+
+                    if (msg_table.containsKey(sender)) {
+                        msg_table.put(sender, msg_table.get(sender) + body);
+                    } else {
+                        msg_table.put(sender, body);
+                    }
                 }
+            }
+
+            for (String sender : msg_table.keySet()) {
+                String sms_body = "[" + sender + "]" + msg_table.get(sender);
+                this.checkTokenAndSendSMS(context, sms_body);
+            }
+
 //                Toast.makeText(context,
 //                        String.valueOf(msg.length)+" Got The Message:" + sb.toString(),
 //                        Toast.LENGTH_LONG).show();
-            }
         }
 
     }
