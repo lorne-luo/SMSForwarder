@@ -28,8 +28,8 @@ public class SMSReceiver extends BroadcastReceiver {
     //android.provider.Telephony.Sms.Intents
     private static final String SMS_RECEIVED_ACTION = "android.provider.Telephony.SMS_RECEIVED";
 
-    private static final String ENABLE_KEY = "example_switch";
-    private static final String MOBILE_NUMBER_KEY = "example_text";
+    private static final String ENABLE_KEY = "enable_switch";
+    private static final String MOBILE_NUMBER_KEY = "receive_number_text";
 
 
     @Override

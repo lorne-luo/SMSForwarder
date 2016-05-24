@@ -2,7 +2,7 @@
 
     <SwitchPreference
         android:defaultValue="true"
-        android:key="example_switch"
+        android:key="enable_switch"
         android:summary="@string/pref_description_social_recommendations"
         android:title="@string/pref_title_social_recommendations" />
 
@@ -12,7 +12,7 @@
         android:capitalize="words"
         android:defaultValue="@string/pref_default_display_name"
         android:inputType="textCapWords"
-        android:key="example_text"
+        android:key="receive_number_text"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"

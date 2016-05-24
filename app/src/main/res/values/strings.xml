@@ -1,20 +1,18 @@
 <resources>
-    <string name="app_name">SMSRedirector</string>
+    <string name="app_name">SMS Forwarder</string>
 
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
+    <string name="pref_title_social_recommendations">Enable SMS Forwarding</string>
+    <string name="pref_description_social_recommendations"></string>
 
-    <string name="pref_title_display_name">Receiver Number</string>
+    <string name="pref_title_display_name">Receive Mobile Number</string>
     <string name="pref_default_display_name">0413725868</string>
 
-    <string name="pref_receiver_number">Receiver Number</string>
+    <string name="pref_receiver_number">Receive Mobile Number</string>
     <string name="pref_default_receiver_number">0413725868</string>
 
     <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
