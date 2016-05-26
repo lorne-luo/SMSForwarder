@@ -9,12 +9,14 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 import android.os.Bundle;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.telstra.api.http.client.APICallBack;
 import com.telstra.api.http.client.HttpContext;
+
 import java.util.Calendar;
 import java.util.Hashtable;
 
@@ -36,10 +38,13 @@ public class SMSReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!this.getIsEnabled(context)) {
-            Log.i("onReceive()", "Enable = false, skipped.");
-            return;
-        }
+//        http://s.luotao.net/api/sms/send/?to=0478543891&body=12312asdfsf2
+//        if (!this.getIsEnabled(context)) {
+//            Toast.makeText(context,
+//                    "SMS forwarder disabled.",
+//                    Toast.LENGTH_LONG).show();
+//            return;
+//        }
 
         if (SMS_RECEIVED_ACTION.equals(intent.getAction())) {
             Hashtable<String, String> msg_table = new Hashtable<String, String>();
@@ -80,26 +85,26 @@ public class SMSReceiver extends BroadcastReceiver {
 
     }
 
-    private String getMobileNumber(Context context){
+    private String getMobileNumber(Context context) {
         String mobileNumber = PreferenceManager
                 .getDefaultSharedPreferences(context)
                 .getString(MOBILE_NUMBER_KEY, "");
-        return  mobileNumber;
+        return mobileNumber;
     }
 
-    private Boolean getIsEnabled(Context context){
+    private Boolean getIsEnabled(Context context) {
         Boolean isEnabled = PreferenceManager
                 .getDefaultSharedPreferences(context)
-                .getBoolean(ENABLE_KEY, false);
+                .getBoolean(ENABLE_KEY, true);
         return isEnabled;
     }
 
-    private void checkTokenAndSendSMS(final Context context, final String body){
+    private void checkTokenAndSendSMS(final Context context, final String body) {
         Configuration.initialize(context);
         Date now = new Date();
         if (now.before(Configuration.tokenExpiry)) {
-            this.sendSMS(context,Configuration.selfMobileNumber,body);
-        }else{
+            this.sendSMS(context, Configuration.selfMobileNumber, body);
+        } else {
             GetAuthenticationInput authRequest = new GetAuthenticationInput();
             authRequest.setClientId(Configuration.consumerKey);
             authRequest.setClientSecret(Configuration.consumerSecret);
@@ -112,7 +117,7 @@ public class SMSReceiver extends BroadcastReceiver {
                     Calendar cal = Calendar.getInstance();
                     cal.add(Calendar.SECOND, Integer.parseInt(response.getExpiresIn()));
                     Configuration.tokenExpiry = cal.getTime();
-                    SMSReceiver.this.sendSMS(context,SMSReceiver.this.getMobileNumber(context),body);
+                    SMSReceiver.this.sendSMS(context, Configuration.selfMobileNumber, body);
                 }
 
                 public void onFailure(HttpContext httpcontext, Throwable error) {
@@ -124,7 +129,7 @@ public class SMSReceiver extends BroadcastReceiver {
         }
     }
 
-    private void sendSMS(Context context,String to, String body){
+    private void sendSMS(Context context, String to, String body) {
         APIController controller = new APIController();
         SendMessageRequest messageRequest = new SendMessageRequest();
         messageRequest.setTo(to);
@@ -154,7 +159,7 @@ public class SMSReceiver extends BroadcastReceiver {
     }
 
 
-    private void sendSelfSMS(Context context, String body){
+    private void sendSelfSMS(Context context, String body) {
         Configuration.initialize(context);
         APIController controller = new APIController();
         String token = controller.getAccessTokenSync();
