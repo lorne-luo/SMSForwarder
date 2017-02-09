@@ -34,7 +34,8 @@ public class SMSReceiver extends BroadcastReceiver {
 
     private static final String ENABLE_KEY = "enable_switch";
     private static final String MOBILE_NUMBER_KEY = "receive_number_text";
-
+    private static final String IGNORE_WORDS = "ignore_text";
+    private static String SEND_TO_NUMBER = "";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -92,6 +93,17 @@ public class SMSReceiver extends BroadcastReceiver {
         return mobileNumber;
     }
 
+    private String[] getIgnoreWords(Context context) {
+        String words = PreferenceManager
+                .getDefaultSharedPreferences(context)
+                .getString(IGNORE_WORDS, "");
+
+        if (words.equals(""))
+            return new String[0];
+
+        return words.split(" ");
+    }
+
     private Boolean getIsEnabled(Context context) {
         Boolean isEnabled = PreferenceManager
                 .getDefaultSharedPreferences(context)
@@ -102,8 +114,21 @@ public class SMSReceiver extends BroadcastReceiver {
     private void checkTokenAndSendSMS(final Context context, final String body) {
         Configuration.initialize(context);
         Date now = new Date();
+        SMSReceiver.SEND_TO_NUMBER = this.getMobileNumber(context);
+
+        String[] ignoreWords = this.getIgnoreWords(context);
+
+        for (String word : ignoreWords) {
+            if (body.contains(word)) {
+                Toast.makeText(context,
+                        "Include ignore words, skiped.",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
         if (now.before(Configuration.tokenExpiry)) {
-            this.sendSMS(context, Configuration.selfMobileNumber, body);
+            this.sendSMS(context, SMSReceiver.SEND_TO_NUMBER, body);
         } else {
             GetAuthenticationInput authRequest = new GetAuthenticationInput();
             authRequest.setClientId(Configuration.consumerKey);
@@ -117,7 +142,7 @@ public class SMSReceiver extends BroadcastReceiver {
                     Calendar cal = Calendar.getInstance();
                     cal.add(Calendar.SECOND, Integer.parseInt(response.getExpiresIn()));
                     Configuration.tokenExpiry = cal.getTime();
-                    SMSReceiver.this.sendSMS(context, Configuration.selfMobileNumber, body);
+                    SMSReceiver.this.sendSMS(context, SMSReceiver.SEND_TO_NUMBER, body);
                 }
 
                 public void onFailure(HttpContext httpcontext, Throwable error) {

@@ -11,12 +11,23 @@
     <EditTextPreference
         android:capitalize="words"
         android:defaultValue="@string/pref_default_display_name"
-        android:inputType="textCapWords"
+        android:inputType="number"
         android:key="receive_number_text"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="@string/pref_title_display_name" />
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue=""
+        android:inputType="text"
+        android:key="ignore_text"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/pref_ignore_word" />
+
 
     <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
          dismiss it. -->
