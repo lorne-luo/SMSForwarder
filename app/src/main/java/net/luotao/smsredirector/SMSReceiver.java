@@ -76,6 +76,8 @@ public class SMSReceiver extends BroadcastReceiver {
 
             for (String sender : msg_table.keySet()) {
                 String sms_body = "[" + sender + "]" + msg_table.get(sender);
+                sms_body.replace("%", " Percent");
+                sms_body = sms_body.length() > 160 ? sms_body.substring(160) : sms_body;
                 this.checkTokenAndSendSMS(context, sms_body);
             }
 

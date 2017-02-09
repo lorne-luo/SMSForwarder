@@ -20,7 +20,7 @@
 
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue=""
+        android:defaultValue="@string/pref_default_ignore_words"
         android:inputType="text"
         android:key="ignore_text"
         android:maxLines="1"
