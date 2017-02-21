@@ -9,8 +9,8 @@ android {
         applicationId "net.luotao.smsredirector"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 7
-        versionName '1.2.3b'
+        versionCode 8
+        versionName '1.2.3c'
     }
     buildTypes {
         release {
