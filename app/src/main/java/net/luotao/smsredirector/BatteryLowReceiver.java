@@ -4,11 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.preference.PreferenceManager;
-import android.telephony.SmsMessage;
-import android.util.Log;
 import android.widget.Toast;
-import android.os.Bundle;
+import android.preference.PreferenceManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.telstra.api.Configuration;
@@ -19,7 +16,7 @@ import com.telstra.api.models.SendMessageRequest;
 import com.telstra.api.models.SendMessageResponse;
 
 
-public class ShutdownReceiver extends BroadcastReceiver {
+public class BatteryLowReceiver extends BroadcastReceiver {
     private static final String MOBILE_NUMBER_KEY = "receive_number_text";
 
     private String getMobileNumber(Context context) {
@@ -31,10 +28,12 @@ public class ShutdownReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Toast.makeText(context, "Battery Low!", Toast.LENGTH_LONG).show();
+
         APIController controller = new APIController();
         SendMessageRequest messageRequest = new SendMessageRequest();
         messageRequest.setTo(Configuration.selfMobileNumber);
-        messageRequest.setBody(android.os.Build.MODEL + " Power Off");
+        messageRequest.setBody(Build.MODEL + " Battery Low.");
 
         try {
             controller.createSMSMessageAsync(messageRequest,

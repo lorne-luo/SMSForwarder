@@ -31,10 +31,10 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".ShutdownReceiver">
+        <receiver android:name=".BatteryLowReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
-                <action android:name="android.intent.action.QUICKBOOT_POWEROFF" />
+                <action android:name="android.intent.action.BATTERY_LOW"/>
+                <action android:name="android.intent.action.BATTERY_OKAY"/>
             </intent-filter>
         </receiver>
     </application>
